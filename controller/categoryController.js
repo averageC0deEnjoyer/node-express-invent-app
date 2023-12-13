@@ -3,23 +3,135 @@ const Item = require('../models/itemModel');
 const asyncHandler = require('express-async-handler');
 
 exports.index = asyncHandler(async (req, res, next) => {
-  const numOfElectronicItems = await Item.aggregate([
-    {
-      $lookup: {
-        from: 'categories',
-        localField: 'category',
-        foreignField: '_id',
-        as: 'category',
+  const [
+    numElectronicItem,
+    numFurnitureItem,
+    numFoodItem,
+    numClothItem,
+    numToyItem,
+    numBookItem,
+    numOtherItem,
+  ] = await Promise.all([
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
       },
-    },
-    {
-      $match: {
-        'category.name': 'Electronics',
+      {
+        $match: {
+          'category.name': 'Electronics',
+        },
       },
-    },
-  ])
-    .exec()
-    .then((res) => res.length);
+    ])
+      .exec()
+      .then((res) => res.length),
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $match: {
+          'category.name': 'Furnitures',
+        },
+      },
+    ])
+      .exec()
+      .then((res) => res.length),
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $match: {
+          'category.name': 'Foods',
+        },
+      },
+    ])
+      .exec()
+      .then((res) => res.length),
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $match: {
+          'category.name': 'Clothes',
+        },
+      },
+    ])
+      .exec()
+      .then((res) => res.length),
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $match: {
+          'category.name': 'Toys',
+        },
+      },
+    ])
+      .exec()
+      .then((res) => res.length),
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $match: {
+          'category.name': 'Books',
+        },
+      },
+    ])
+      .exec()
+      .then((res) => res.length),
+    Item.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $match: {
+          'category.name': 'Others',
+        },
+      },
+    ])
+      .exec()
+      .then((res) => res.length),
+  ]);
 
   //   const numElectronicItem = await Item.find()
   //     .populate('category', 'name')
@@ -34,7 +146,13 @@ exports.index = asyncHandler(async (req, res, next) => {
 
   res.render('index', {
     title: 'Inventory Apps',
-    numElectronicItem: numOfElectronicItems,
+    numElectronicItem: numElectronicItem,
+    numFurnitureItem: numFurnitureItem,
+    numFoodItem: numFoodItem,
+    numClothItem: numClothItem,
+    numToyItem: numToyItem,
+    numBookItem: numBookItem,
+    numOtherItem: numOtherItem,
   });
 });
 
