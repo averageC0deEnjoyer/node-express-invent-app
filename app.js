@@ -12,8 +12,9 @@ const app = express();
 // set up mongoose connection
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
-const mongoDB =
+const mongoDevURI =
   'mongodb+srv://dennylauw:mongodb@cluster0.tiokefs.mongodb.net/inventory?retryWrites=true&w=majority';
+const mongoDB = process.env.MONGODB_URI || mongoDevURI;
 
 main().catch((err) => console.log(err));
 async function main() {
