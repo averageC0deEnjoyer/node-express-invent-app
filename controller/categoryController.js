@@ -234,20 +234,86 @@ exports.category_create_post = [
 
 // Display category delete form on GET.
 exports.category_delete_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: category delete GET');
+  const [category, allItemsInCategory] = await Promise.all([
+    Category.findById(req.params.id).exec(),
+    Item.find({ category: req.params.id }).exec(),
+  ]);
+
+  if (category === null) {
+    res.redirect('/inventory/categories');
+  }
+
+  res.render('category_delete', {
+    title: 'Delete Category',
+    category: category,
+    allItemsInCategory: allItemsInCategory,
+  });
 });
 
 // Handle category delete on POST.
 exports.category_delete_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: category delete POST');
+  //another guardrail , even though in get route already there
+  const [category, allItemsInCategory] = await Promise.all([
+    Category.findById(req.params.id).exec(),
+    Item.find({ category: req.params.id }).exec(),
+  ]);
+
+  if (allItemsInCategory.length > 0) {
+    res.render('category_delete', {
+      title: 'Delete Category',
+      category: category,
+      allItemsInCategory: allItemsInCategory,
+    });
+    return;
+  } else {
+    await Category.findByIdAndDelete(req.body.categoryid);
+    res.redirect('/inventory/categories');
+  }
 });
 
 // Display category update form on GET.
 exports.category_update_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: category update GET');
+  const selectedCategory = await Category.findById(req.params.id).exec();
+
+  if (selectedCategory === null) {
+    const err = new Error('Category not found');
+    err.status = 404;
+    return next(err);
+  }
+
+  res.render('category_form', {
+    title: 'Update Category',
+    category: selectedCategory,
+  });
 });
 
 // Handle category update on POST.
-exports.category_update_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: category update POST');
-});
+exports.category_update_post = [
+  body('name', 'name must not be empty').trim().isLength({ min: 3 }).escape(),
+  body('desc').trim().isLength({ min: 10 }).escape(),
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+
+    const updatedCategory = new Category({
+      name: req.body.name,
+      desc: req.body.desc,
+      _id: req.params.id,
+    });
+
+    if (!errors.isEmpty()) {
+      res.render('category_form', {
+        title: 'Update Category',
+        category: updatedCategory,
+        errors: errors.array(),
+      });
+      return;
+    } else {
+      const successfulUpdatedCategory = await Category.findByIdAndUpdate(
+        req.params.id,
+        updatedCategory,
+        {}
+      );
+      res.redirect(successfulUpdatedCategory.url);
+    }
+  }),
+];
