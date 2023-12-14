@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1= title
+
+  ul
+    each item in allItems
+      li
+        a(href=item.url) #{item.name}
+        p Category = 
+            for val, index in item.category 
+                a(href=val.url) #{val.name}  
+                if index < item.category.length - 1
+                    || 
+        p price #{item.price} 
+        p stock #{item.stock}
+
+    else
+      li There are no item.
