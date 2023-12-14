@@ -1,6 +1,6 @@
 const Item = require('../models/itemModel');
 const Category = require('../models/categoryModel');
-
+const { body, validationResult } = require('express-validator');
 const asyncHandler = require('express-async-handler');
 
 exports.item_list = asyncHandler(async (req, res, next) => {
@@ -28,13 +28,61 @@ exports.item_detail = asyncHandler(async (req, res, next) => {
 
 // Display item create form on GET.
 exports.item_create_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: item create GET');
+  const allCategories = await Category.find().sort({ name: 1 }).exec();
+
+  res.render('item_form', {
+    title: 'Create Item',
+    allCategories: allCategories,
+  });
 });
 
 // Handle item create on POST.
-exports.item_create_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: item create POST');
-});
+exports.item_create_post = [
+  (req, res, next) => {
+    if (!Array.isArray(req.body.category)) {
+      req.body.category =
+        typeof req.body.category === 'undefined' ? [] : [req.body.category];
+    }
+    next();
+  },
+
+  body('name', 'name must not be empty').trim().isLength({ min: 3 }).escape(),
+  body('desc', 'desc must > 10 char').trim().isLength({ min: 10 }).escape(),
+  body('category.*').escape(),
+  body('price', 'price must not be empty').trim().escape(),
+  body('stock').trim().escape(),
+
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+
+    const newItem = new Item({
+      name: req.body.name,
+      desc: req.body.desc,
+      category: req.body.category,
+      price: req.body.price,
+      stock: req.body.stock,
+    });
+
+    if (!errors.isEmpty()) {
+      const allCategories = await Category.find().sort({ name: 1 }).exec();
+
+      for (const category of allCategories) {
+        if (newItem.category.includes(category._id)) {
+          category.checked = 'true';
+        }
+      }
+      res.render('item_form', {
+        title: 'Create Item',
+        allCategories: allCategories,
+        item: newItem,
+        errors: errors.array(),
+      });
+    } else {
+      await newItem.save();
+      res.redirect(newItem.url);
+    }
+  }),
+];
 
 // Display item delete form on GET.
 exports.item_delete_get = asyncHandler(async (req, res, next) => {
