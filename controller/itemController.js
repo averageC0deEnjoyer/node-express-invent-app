@@ -39,10 +39,13 @@ exports.item_create_get = asyncHandler(async (req, res, next) => {
 // Handle item create on POST.
 exports.item_create_post = [
   (req, res, next) => {
+    console.log(req.body.category);
     if (!Array.isArray(req.body.category)) {
       req.body.category =
         typeof req.body.category === 'undefined' ? [] : [req.body.category];
     }
+    console.log(req.body.category);
+
     next();
   },
 
@@ -86,12 +89,22 @@ exports.item_create_post = [
 
 // Display item delete form on GET.
 exports.item_delete_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: item delete GET');
+  const selectedItem = await Item.findById(req.params.id).exec();
+
+  if (selectedItem === null) {
+    res.redirect('/inventory/items');
+  }
+
+  res.render('item_delete', {
+    title: 'Delete Item',
+    item: selectedItem,
+  });
 });
 
 // Handle item delete on POST.
 exports.item_delete_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: item delete POST');
+  await Item.findByIdAndDelete(req.params.id).exec();
+  res.redirect('/inventory/items');
 });
 
 // Display item update form on GET.
